@@ -14,7 +14,7 @@ declare type HttpMethod =
  * @public
  */
 declare type HttpConfig<Args> = Partial<{
-  url: string | Expression<Args, string>;
+  url: string | URL | Expression<Args, string | URL>;
   method: HttpMethod;
   headers: Record<string, unknown> | Headers | Expression<Args, Record<string, unknown> | Headers>;
   params:
@@ -29,7 +29,7 @@ declare type HttpConfig<Args> = Partial<{
  * @private
  */
 declare type HttpConfigNormalized<Args> = {
-  url: Expression<Args, string>;
+  url: Expression<Args, string | URL>;
   method?: HttpMethod;
   headers: Expression<Args, Record<string, unknown> | Headers>;
   params: Expression<Args, Record<string, unknown> | URLSearchParams>;
@@ -40,7 +40,7 @@ declare type HttpConfigNormalized<Args> = {
  * @public
  */
 declare type HttpContext = {
-  url: string;
+  url: URL;
   method: HttpMethod;
   headers: Headers;
   params: URLSearchParams;

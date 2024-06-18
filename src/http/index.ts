@@ -17,7 +17,7 @@ export function request<Args>(configs: HttpConfigNormalized<Args>[], args: Args)
 }
 
 const CONTEXT_DEFAULTS = {
-  url: "",
+  url: new URL(location.origin),
   method: "get",
   body: {},
 } as const;
@@ -69,10 +69,12 @@ const beginsWithProtocol = /^http/;
 
 function applyUrlConfig(config: HttpConfigNormalized<any>, args: any, target: HttpContext) {
   const url = config.url(args);
-  if (beginsWithSlash.test(url) || beginsWithProtocol.test(url)) {
+  if (url instanceof URL) {
     target.url = url;
+  } else if (beginsWithSlash.test(url) || beginsWithProtocol.test(url)) {
+    target.url = new URL(url);
   } else {
-    target.url += url;
+    target.url.pathname += url;
   }
 }
 
