@@ -17,7 +17,7 @@ declare type HttpConfig<Args> = Partial<{
   url: string | Expression<Args, string>;
   method: HttpMethod;
   headers: Record<string, unknown> | Headers | Expression<Args, Record<string, unknown> | Headers>;
-  query:
+  params:
     | Record<string, unknown>
     | URLSearchParams
     | Expression<Args, Record<string, unknown> | URLSearchParams>;
@@ -32,7 +32,7 @@ declare type HttpConfigNormalized<Args> = {
   url: Expression<Args, string>;
   method?: HttpMethod;
   headers: Expression<Args, Record<string, unknown> | Headers>;
-  query: Expression<Args, Record<string, unknown> | URLSearchParams>;
+  params: Expression<Args, Record<string, unknown> | URLSearchParams>;
   body: Expression<Args, Record<string, unknown> | FormData>;
 };
 
@@ -43,7 +43,7 @@ declare type HttpContext = {
   url: string;
   method: HttpMethod;
   headers: Headers;
-  query: URLSearchParams;
+  params: URLSearchParams;
   body: Record<string, unknown> | FormData;
 };
 

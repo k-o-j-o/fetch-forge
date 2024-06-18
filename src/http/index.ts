@@ -22,8 +22,8 @@ const CONTEXT_DEFAULTS = {
   body: {},
 } as const;
 
-function getDefaultContext() {
-  return Object.assign({ headers: new Headers(), query: new URLSearchParams() }, CONTEXT_DEFAULTS);
+function getDefaultContext(): HttpContext {
+  return Object.assign({ headers: new Headers(), params: new URLSearchParams() }, CONTEXT_DEFAULTS);
 }
 
 function applyAllConfigs(
@@ -47,7 +47,7 @@ function applyConfig(it: HttpConfig<any>, args: any, context: HttpContext) {
   context.method = config.method ?? context.method;
   applyUrlConfig(config, args, context);
   applyHeadersConfig(config, args, context);
-  applyQueryConfig(config, args, context);
+  applyParamsConfig(config, args, context);
   applyBodyConfig(config, args, context);
 }
 
@@ -58,7 +58,7 @@ function normalizeConfig<Args>(config: HttpConfig<Args>): HttpConfigNormalized<A
       method: config.method,
       url: isFunction(config.url) ? config.url : returnThis.bind(config.url),
       headers: isFunction(config.headers) ? config.headers : returnThis.bind(config.headers),
-      query: isFunction(config.query) ? config.query : returnThis.bind(config.query),
+      params: isFunction(config.params) ? config.params : returnThis.bind(config.params),
       body: isFunction(config.body) ? config.body : returnThis.bind(config.body),
     })
   );
@@ -85,12 +85,12 @@ function applyHeadersConfig(config: HttpConfigNormalized<any>, args: any, target
   }
 }
 
-function applyQueryConfig(config: HttpConfigNormalized<any>, args: any, target: HttpContext) {
-  const query = config.query(args);
-  if (query instanceof URLSearchParams) {
-    appendEntries(target.query, query);
+function applyParamsConfig(config: HttpConfigNormalized<any>, args: any, target: HttpContext) {
+  const params = config.params(args);
+  if (params instanceof URLSearchParams) {
+    appendEntries(target.params, params);
   } else {
-    appendEntries(target.query, Object.entries(query));
+    appendEntries(target.params, Object.entries(params));
   }
 }
 
