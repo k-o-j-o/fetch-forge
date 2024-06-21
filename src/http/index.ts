@@ -1,11 +1,21 @@
 import { appendEntries, convertToFormData, isFunction, isIterable, returnThis } from "@/util";
-import { HttpConfig, HttpConfigNormalized, HttpConfigSource, HttpContext } from "@/http/http";
+import {
+	HttpConfig,
+	HttpConfigNormalized,
+	HttpConfigOrSource,
+	HttpConfigSource,
+	HttpContext,
+} from "@/http/http";
 import * as Symbols from "@/symbols";
 
-export function request<Args>(configs: HttpConfigNormalized<Args>[], args: Args) {
-	const context = getDefaultContext();
+export function request<Args>(configOrSource: HttpConfigOrSource<Args>, args?: Args) {
+	const context = createContextWithDefaults();
 
-	applyAllConfigs(configs, args, context);
+	if (isIterable(configOrSource)) {
+		applyConfigSource(configOrSource, args, context);
+	} else {
+		applyConfig(configOrSource, args, context);
+	}
 
 	const request = new Request(context.url, {
 		method: context.method,
@@ -16,27 +26,24 @@ export function request<Args>(configs: HttpConfigNormalized<Args>[], args: Args)
 	return fetch(request);
 }
 
-const CONTEXT_DEFAULTS = {
-	url: new URL(location.origin),
-	method: "get",
-	body: {},
-} as const;
-
-function getDefaultContext(): HttpContext {
-	return Object.assign(
-		{ headers: new Headers(), params: new URLSearchParams() },
-		CONTEXT_DEFAULTS
-	);
+function createContextWithDefaults(): HttpContext {
+	return {
+		url: new URL(location.origin),
+		method: "get",
+		headers: new Headers(),
+		params: new URLSearchParams(),
+		body: {},
+	};
 }
 
-function applyAllConfigs(
+function applyConfigSource(
 	configs: HttpConfigSource<any>,
 	args: any,
 	target: HttpContext
 ): HttpContext {
 	for (const configOrSource of configs) {
 		if (isIterable(configOrSource)) {
-			applyAllConfigs(configOrSource, args, target);
+			applyConfigSource(configOrSource, args, target);
 		} else {
 			applyConfig(configOrSource, args, target);
 		}
@@ -77,7 +84,7 @@ function applyUrlConfig(config: HttpConfigNormalized<any>, args: any, target: Ht
 		target.url = url;
 	} else if (beginsWithSlash.test(url) || beginsWithProtocol.test(url)) {
 		target.url = new URL(url);
-	} else {
+	} else if (url) {
 		target.url.pathname += url;
 	}
 }
@@ -86,7 +93,7 @@ function applyHeadersConfig(config: HttpConfigNormalized<any>, args: any, target
 	const headers = config.headers(args);
 	if (headers instanceof Headers) {
 		appendEntries(target.headers, headers);
-	} else {
+	} else if (headers) {
 		appendEntries(target.headers, Object.entries(headers));
 	}
 }
@@ -95,7 +102,7 @@ function applyParamsConfig(config: HttpConfigNormalized<any>, args: any, target:
 	const params = config.params(args);
 	if (params instanceof URLSearchParams) {
 		appendEntries(target.params, params);
-	} else {
+	} else if (params) {
 		appendEntries(target.params, Object.entries(params));
 	}
 }
@@ -107,7 +114,7 @@ function applyBodyConfig(config: HttpConfigNormalized<any>, args: any, target: H
 			target.body = convertToFormData(target.body);
 		}
 		appendEntries(target.body, body);
-	} else {
+	} else if (body) {
 		if (target.body instanceof FormData) {
 			body = convertToFormData(body);
 			appendEntries(target.body, body);
