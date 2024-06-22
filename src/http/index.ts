@@ -75,14 +75,16 @@ function normalizeConfig<Args>(config: HttpConfig<Args>): HttpConfigNormalized<A
 }
 
 const beginsWithSlash = /^[\\\/]/;
-const beginsWithProtocol = /^http/;
+const beginsWithScheme = /^[a-z0-9]+:\/\//;
 
 function applyUrlConfig(config: HttpConfigNormalized<any>, args: any, target: HttpContext) {
 	const url = config.url(args);
 	if (url instanceof URL) {
 		//a URL instance must represent an absolute path, so we should replace the whole thing
 		target.url = url;
-	} else if (beginsWithSlash.test(url) || beginsWithProtocol.test(url)) {
+	} else if (beginsWithSlash.test(url)) {
+		target.url = new URL(location.origin + url);
+	} else if (beginsWithScheme.test(url)) {
 		target.url = new URL(url);
 	} else if (url) {
 		target.url.pathname += url;
