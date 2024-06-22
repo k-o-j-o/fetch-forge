@@ -20,7 +20,7 @@ export function request<Args>(configOrSource: HttpConfigOrSource<Args>, args?: A
 	const request = new Request(context.url, {
 		method: context.method,
 		headers: context.headers,
-		body: context.body instanceof FormData ? context.body : JSON.stringify(context.body),
+		body: getRequestBodyIfValid(context),
 	});
 
 	return fetch(request);
@@ -123,4 +123,13 @@ function applyBodyConfig(config: HttpConfigNormalized<any>, args: any, target: H
 		}
 		Object.assign(target.body, body);
 	}
+}
+
+function getRequestBodyIfValid(context: HttpContext): FormData | string | undefined {
+	const method = context.method.toUpperCase();
+	if (method === "GET" || method === "HEAD") return undefined;
+
+	if (context.body instanceof FormData) return context.body;
+
+	return JSON.stringify(context.body);
 }
