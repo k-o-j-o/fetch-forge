@@ -8,7 +8,10 @@ import {
 } from "@/http/http";
 import * as Symbols from "@/symbols";
 
-export function request<Args>(configOrSource: HttpConfigOrSource<Args>, args?: Args) {
+export function request<Args>(
+	configOrSource: HttpConfigOrSource<Args>,
+	args?: Args
+): Promise<Response> {
 	const context = createContextWithDefaults();
 
 	if (isIterable(configOrSource)) {
@@ -17,6 +20,7 @@ export function request<Args>(configOrSource: HttpConfigOrSource<Args>, args?: A
 		applyConfig(configOrSource, args, context);
 	}
 
+	/* A reminder: the context's query params should be added to the URL instance itself by now */
 	const request = new Request(context.url, {
 		method: context.method,
 		headers: context.headers,
@@ -27,11 +31,15 @@ export function request<Args>(configOrSource: HttpConfigOrSource<Args>, args?: A
 }
 
 function createContextWithDefaults(): HttpContext {
+	const url = new URL(location.origin);
 	return {
-		url: new URL(location.origin),
+		url,
 		method: "get",
 		headers: new Headers(),
-		params: new URLSearchParams(),
+		/*	this is a bit of a hack, but because the Request constructor does not allow specifying 
+			params on their own, they must be added to the URL instance itself.
+			When applying configs, the context's params reference will need to be handled carefully */
+		params: url.searchParams,
 		body: {},
 	};
 }
@@ -74,22 +82,40 @@ function normalizeConfig<Args>(config: HttpConfig<Args>): HttpConfigNormalized<A
 	);
 }
 
-const beginsWithSlash = /^[\\\/]/;
-const beginsWithScheme = /^[a-z0-9]+:\/\//;
-
 function applyUrlConfig(config: HttpConfigNormalized<any>, args: any, target: HttpContext) {
 	const url = config.url(args);
-	if (url instanceof URL) {
-		//a URL instance must represent an absolute path, so we should replace the whole thing
-		target.url = url;
-	} else if (beginsWithSlash.test(url)) {
-		target.url = new URL(location.origin + url);
-	} else if (beginsWithScheme.test(url)) {
+	if (isAbsoluteUri(url)) {
+		/*	To avoid mutating their data, we "clone" the URL instance the consumer gave us 
+			by passing it through the URL constructor */
 		target.url = new URL(url);
+		/* 	We want to save any params that were passed through a URL instance */
+		appendEntries(target.url.searchParams, target.params);
+		/* 	and ensure future params are applied to the new URL instance */
+		target.params = target.url.searchParams;
+	} else if (isAbsolutePathReference(url)) {
+		target.url = new URL(location.origin + url);
+		appendEntries(target.url.searchParams, target.params);
+		target.params = target.url.searchParams;
 	} else if (url) {
 		target.url.pathname += url;
 	}
 }
+
+function isAbsoluteUri(url: URL | string): url is URL {
+	/* 	RFC 3986 4.3. "Absolute URI" https://www.rfc-editor.org/rfc/rfc3986
+		An absolute URI begins with a sceheme. An instance of URL "must" represent an absolute URI */
+	return url instanceof URL || beginsWithScheme.test(url);
+}
+
+const beginsWithScheme = /^[a-z0-9]+:\/\//;
+
+function isAbsolutePathReference(url: string): boolean {
+	/*	RFC 3986  4.2. "Relative Reference" https://www.rfc-editor.org/rfc/rfc3986
+		"A relative reference that begins with a single slash character is termed an absolute-path reference" */
+	return beginsWithSlash.test(url);
+}
+
+const beginsWithSlash = /^[\\\/]/;
 
 function applyHeadersConfig(config: HttpConfigNormalized<any>, args: any, target: HttpContext) {
 	const headers = config.headers(args);
