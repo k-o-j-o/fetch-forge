@@ -4,6 +4,7 @@ import { NormalizedConfig } from "@/symbols";
  * @public
  */
 declare type HttpMethod =
+	| AnyCase<"head">
 	| AnyCase<"get">
 	| AnyCase<"post">
 	| AnyCase<"put">
@@ -14,17 +15,20 @@ declare type HttpMethod =
  * @public
  */
 declare type HttpConfig<Args> = Partial<{
-	url: string | URL | Expression<Args, string | URL>;
+	url: string | URL | Expression<[Args], string | URL>;
 	method: HttpMethod;
 	headers:
 		| Record<string, unknown>
 		| Headers
-		| Expression<Args, Record<string, unknown> | Headers>;
+		| Expression<[Args], Record<string, unknown> | Headers>;
 	params:
 		| Record<string, unknown>
 		| URLSearchParams
-		| Expression<Args, Record<string, unknown> | URLSearchParams>;
-	body: Record<string, unknown> | FormData | Expression<Args, Record<string, unknown> | FormData>;
+		| Expression<[Args], Record<string, unknown> | URLSearchParams>;
+	body:
+		| Record<string, unknown>
+		| FormData
+		| Expression<[Args], Record<string, unknown> | FormData>;
 	[NormalizedConfig]: HttpConfigNormalized<Args>;
 }>;
 
@@ -32,11 +36,11 @@ declare type HttpConfig<Args> = Partial<{
  * @private
  */
 declare type HttpConfigNormalized<Args> = {
-	url: Expression<Args, string | URL>;
+	url: Expression<[Args], string | URL>;
 	method?: HttpMethod;
-	headers: Expression<Args, Record<string, unknown> | Headers | undefined>;
-	params: Expression<Args, Record<string, unknown> | URLSearchParams | undefined>;
-	body: Expression<Args, Record<string, unknown> | FormData | undefined>;
+	headers: Expression<[Args], Record<string, unknown> | Headers | undefined>;
+	params: Expression<[Args], Record<string, unknown> | URLSearchParams | undefined>;
+	body: Expression<[Args], Record<string, unknown> | FormData | undefined>;
 };
 
 /**
@@ -47,7 +51,7 @@ declare type HttpContext = {
 	method: HttpMethod;
 	headers: Headers;
 	params: URLSearchParams;
-	body: Record<string, unknown> | FormData;
+	body?: Record<string, unknown> | FormData;
 };
 
 /**

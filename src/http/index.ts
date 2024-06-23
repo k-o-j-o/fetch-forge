@@ -1,11 +1,4 @@
-import {
-	appendEntries,
-	convertToFormData,
-	isFunction,
-	isIterable,
-	isObject,
-	returnThis,
-} from "@/util";
+import { appendEntries, convertToFormData, isFunction, isIterable, returnThis } from "@/util";
 import { HttpConfig, HttpConfigNormalized, HttpConfigSource, HttpContext } from "@/http/http";
 import * as Symbols from "@/symbols";
 
@@ -33,14 +26,16 @@ export class RequestBuilder<Args = void> {
 export function request(context: HttpContext): Promise<Response> {
 	appendEntries(context.url.searchParams, context.params);
 
-	if (isObject(context.body) && !context.headers.has("content-type")) {
-		context.headers.set("content-type", "application/json");
+	const body = getRequestBodyIfValid(context);
+
+	if (typeof body === "string" && !context.headers.has("Content-Type")) {
+		context.headers.set("Content-Type", "application/json");
 	}
 
 	const request = new Request(context.url, {
 		method: context.method,
 		headers: context.headers,
-		body: getRequestBodyIfValid(context),
+		body,
 	});
 
 	return fetch(request);
@@ -52,7 +47,7 @@ function createContextWithDefaults(): HttpContext {
 		method: "get",
 		headers: new Headers(),
 		params: new URLSearchParams(),
-		body: {},
+		body: undefined,
 	};
 }
 
@@ -147,16 +142,23 @@ function applyParamsConfig(config: HttpConfigNormalized<any>, args: any, target:
 function applyBodyConfig(config: HttpConfigNormalized<any>, args: any, target: HttpContext) {
 	let body = config.body(args);
 	if (body instanceof FormData) {
-		if (!(target.body instanceof FormData)) {
-			target.body = convertToFormData(target.body);
-		}
-		appendEntries(target.body, body);
-	} else if (body) {
 		if (target.body instanceof FormData) {
-			body = convertToFormData(body);
+			appendEntries(target.body, body);
+		} else if (target.body) {
+			target.body = convertToFormData(target.body);
+			appendEntries(target.body, body);
+		} else {
+			target.body = new FormData();
 			appendEntries(target.body, body);
 		}
-		Object.assign(target.body, body);
+	} else if (body) {
+		if (target.body instanceof FormData) {
+			appendEntries(target.body, Object.entries(body));
+		} else if (target.body) {
+			Object.assign(target.body, body);
+		} else {
+			target.body = { ...body };
+		}
 	}
 }
 
