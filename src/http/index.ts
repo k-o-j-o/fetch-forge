@@ -1,26 +1,42 @@
-import { appendEntries, convertToFormData, isFunction, isIterable, returnThis } from "@/util";
 import {
-	HttpConfig,
-	HttpConfigNormalized,
-	HttpConfigOrSource,
-	HttpConfigSource,
-	HttpContext,
-} from "@/http/http";
+	appendEntries,
+	convertToFormData,
+	isFunction,
+	isIterable,
+	isObject,
+	returnThis,
+} from "@/util";
+import { HttpConfig, HttpConfigNormalized, HttpConfigSource, HttpContext } from "@/http/http";
 import * as Symbols from "@/symbols";
 
-export function request<Args>(
-	configOrSource: HttpConfigOrSource<Args>,
-	args?: Args
-): Promise<Response> {
-	const context = createContextWithDefaults();
+export class RequestBuilder<Args = void> {
+	#configs: Set<HttpConfig<Args>>;
 
-	if (isIterable(configOrSource)) {
-		applyConfigSource(configOrSource, args, context);
-	} else {
-		applyConfig(configOrSource, args, context);
+	public constructor(config: HttpConfig<Args>) {
+		this.#configs = new Set([config]);
 	}
 
-	/* A reminder: the context's query params should be added to the URL instance itself by now */
+	public addConfig(...configs: HttpConfig<Args>[]): RequestBuilder<Args> {
+		configs.forEach((config) => this.#configs.add(config));
+		return this;
+	}
+
+	public request(args: Args): Promise<Response> {
+		const context = createContextWithDefaults();
+
+		applyConfigSource(this.#configs, args, context);
+
+		return request(context);
+	}
+}
+
+export function request(context: HttpContext): Promise<Response> {
+	appendEntries(context.url.searchParams, context.params);
+
+	if (isObject(context.body) && !context.headers.has("content-type")) {
+		context.headers.set("content-type", "application/json");
+	}
+
 	const request = new Request(context.url, {
 		method: context.method,
 		headers: context.headers,
@@ -31,15 +47,11 @@ export function request<Args>(
 }
 
 function createContextWithDefaults(): HttpContext {
-	const url = new URL(location.origin);
 	return {
-		url,
+		url: new URL(location.origin),
 		method: "get",
 		headers: new Headers(),
-		/*	this is a bit of a hack, but because the Request constructor does not allow specifying 
-			params on their own, they must be added to the URL instance itself.
-			When applying configs, the context's params reference will need to be handled carefully */
-		params: url.searchParams,
+		params: new URLSearchParams(),
 		body: {},
 	};
 }
@@ -85,17 +97,14 @@ function normalizeConfig<Args>(config: HttpConfig<Args>): HttpConfigNormalized<A
 function applyUrlConfig(config: HttpConfigNormalized<any>, args: any, target: HttpContext) {
 	const url = config.url(args);
 	if (isAbsoluteUri(url)) {
+		/* 	We want to save any params that were passed through a previous url  */
+		appendEntries(target.params, target.url.searchParams.entries());
 		/*	To avoid mutating their data, we "clone" the URL instance the consumer gave us 
 			by passing it through the URL constructor */
 		target.url = new URL(url);
-		/* 	We want to save any params that were passed through a URL instance */
-		appendEntries(target.url.searchParams, target.params);
-		/* 	and ensure future params are applied to the new URL instance */
-		target.params = target.url.searchParams;
 	} else if (isAbsolutePathReference(url)) {
+		appendEntries(target.params, target.url.searchParams.entries());
 		target.url = new URL(location.origin + url);
-		appendEntries(target.url.searchParams, target.params);
-		target.params = target.url.searchParams;
 	} else if (url) {
 		target.url.pathname += url;
 	}
