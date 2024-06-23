@@ -25,11 +25,12 @@
     ],
     "paths": {
       "@/*": [
-        "./src/*"
+        "./src/*",
       ]
     }
   },
   "include": [
-    "src"
+    "src",
+    "tests"
   ]
 }
