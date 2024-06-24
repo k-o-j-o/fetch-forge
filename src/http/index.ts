@@ -101,7 +101,11 @@ function applyUrlConfig(config: HttpConfigNormalized<any>, args: any, target: Ht
 		appendEntries(target.params, target.url.searchParams.entries());
 		target.url = new URL(location.origin + url);
 	} else if (url) {
+if (target.url.pathname.endsWith("/")) {
 		target.url.pathname += url;
+} else {
+			target.url.pathname += "/" + url;
+		}
 	}
 }
 
