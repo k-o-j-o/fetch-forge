@@ -1,12 +1,21 @@
 import { appendEntries, convertToFormData, isFunction, isIterable, returnThis } from "@/util";
-import { HttpConfig, HttpConfigNormalized, HttpConfigSource, HttpContext } from "@/http/http";
+import {
+	HttpConfig,
+	HttpConfigNormalized,
+	HttpConfigOrSource,
+	HttpConfigSource,
+	HttpContext,
+} from "@/http/http";
 import * as Symbols from "@/symbols";
 
-export class RequestBuilder<Args = void> {
-	#configs: Set<HttpConfig<Args>>;
+export class RequestBuilder<Args = void> implements Iterable<HttpConfigOrSource<Args>> {
+	#configs: Set<HttpConfigOrSource<Args>>;
 
-	public constructor(config: HttpConfig<Args>) {
-		this.#configs = new Set([config]);
+	[Symbol.iterator]!: () => Iterator<HttpConfigOrSource<Args>>;
+
+	private constructor(source: HttpConfigSource<Args>) {
+		this.#configs = new Set(source);
+		this[Symbol.iterator] = this.#configs[Symbol.iterator].bind(this.#configs);
 	}
 
 	public addConfig(...configs: HttpConfig<Args>[]): RequestBuilder<Args> {
@@ -20,6 +29,10 @@ export class RequestBuilder<Args = void> {
 		applyConfigSource(this.#configs, args, context);
 
 		return request(context);
+	}
+
+	public static using<Args = void>(...source: HttpConfigOrSource<Args>[]): RequestBuilder<Args> {
+		return new RequestBuilder(source);
 	}
 }
 
@@ -101,9 +114,9 @@ function applyUrlConfig(config: HttpConfigNormalized<any>, args: any, target: Ht
 		appendEntries(target.params, target.url.searchParams.entries());
 		target.url = new URL(location.origin + url);
 	} else if (url) {
-if (target.url.pathname.endsWith("/")) {
-		target.url.pathname += url;
-} else {
+		if (target.url.pathname.endsWith("/")) {
+			target.url.pathname += url;
+		} else {
 			target.url.pathname += "/" + url;
 		}
 	}
