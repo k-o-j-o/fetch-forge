@@ -1,4 +1,11 @@
-import { appendEntries, convertToFormData, isFunction, isIterable, returnThis } from "@/util";
+import {
+	appendEntries,
+	convertToFormData,
+	isFunction,
+	isIterable,
+	joinPaths,
+	returnThis,
+} from "@/util";
 import {
 	HttpConfig,
 	HttpConfigNormalized,
@@ -112,13 +119,9 @@ function applyUrlConfig(config: HttpConfigNormalized<any>, args: any, target: Ht
 		target.url = new URL(url);
 	} else if (isAbsolutePathReference(url)) {
 		appendEntries(target.params, target.url.searchParams.entries());
-		target.url = new URL(location.origin + url);
+		target.url = new URL(joinPaths(location.origin, url));
 	} else if (url) {
-		if (target.url.pathname.endsWith("/")) {
-			target.url.pathname += url;
-		} else {
-			target.url.pathname += "/" + url;
-		}
+		target.url.pathname = joinPaths(target.url.pathname, url);
 	}
 }
 

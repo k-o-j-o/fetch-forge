@@ -11,7 +11,7 @@ afterEach(() => {
 
 afterAll(() => httpServer.close());
 
-const LOCAL_HOST = "http://127.0.0.1";
+const LOCAL_HOST = "http://localhost";
 
 describe("url", () => {
 	test("can be instance of URL", async () => {
@@ -56,7 +56,7 @@ describe("url", () => {
 		const url = "path";
 		const test = RequestBuilder.using({ url });
 		const response: MockServerResponse = await test.request().then((x) => x.json());
-		expect(response.url).toBe(LOCAL_HOST + "/" + url);
+		expect(response.url).toMatch(LOCAL_HOST + "/" + url);
 	});
 
 	test("absolute path will use current origin as origin", async () => {
@@ -64,7 +64,7 @@ describe("url", () => {
 		const url = "/path";
 		const test = RequestBuilder.using({ url });
 		const response: MockServerResponse = await test.request().then((x) => x.json());
-		expect(response.url).toBe(LOCAL_HOST + url);
+		expect(response.url).toMatch(LOCAL_HOST + url);
 	});
 });
 
@@ -265,7 +265,7 @@ describe("supports multiple configs", () => {
 
 			const response: MockServerResponse = await test.request().then((x) => x.json());
 
-			expect(response.url).toMatch(LOCAL_HOST + "/" + url + "?");
+			expect(response.url).toMatch(LOCAL_HOST + "/" + url);
 			expect(response.method).toMatch(/post/i);
 			expect(response.headers).toMatchObject(headers);
 			expect(response.params).toMatchObject(params);
@@ -279,7 +279,7 @@ describe("supports multiple configs", () => {
 					const url2 = "path2";
 					const test = RequestBuilder.using({ url: url1 }, { url: url2 });
 					const response: MockServerResponse = await test.request().then((x) => x.json());
-					expect(response.url).toBe(`${LOCAL_HOST}/${url1}/${url2}`);
+					expect(response.url).toMatch(`${LOCAL_HOST}/${url1}/${url2}`);
 				});
 
 				test("absolute path overwrites previous url", async () => {

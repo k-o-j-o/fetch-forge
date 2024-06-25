@@ -28,3 +28,17 @@ export function convertToFormData(obj: object) {
 	appendEntries(formData, Object.entries(obj));
 	return formData;
 }
+
+export function joinPaths(...paths: string[]) {
+	return paths.reduce((url, path) => {
+		if (url.endsWith("/")) {
+			if (path.startsWith("/")) {
+				path = path.slice(1);
+			}
+		} else if (!path.startsWith("/")) {
+			path = "/" + path;
+		}
+
+		return url + path;
+	});
+}
