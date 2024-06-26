@@ -1,9 +1,7 @@
-import { NormalizedConfig } from "@/symbols";
-
 /**
  * @public
  */
-declare type HttpMethod =
+export type HttpMethod =
 	| AnyCase<"head">
 	| AnyCase<"get">
 	| AnyCase<"post">
@@ -14,7 +12,7 @@ declare type HttpMethod =
 /**
  * @public
  */
-declare type HttpConfig<Args> = Partial<{
+export type HttpConfig<Args> = Partial<{
 	url: string | URL | Expression<[Args], string | URL>;
 	method: HttpMethod;
 	headers:
@@ -29,13 +27,12 @@ declare type HttpConfig<Args> = Partial<{
 		| Record<string, unknown>
 		| FormData
 		| Expression<[Args], Record<string, unknown> | FormData>;
-	[NormalizedConfig]: HttpConfigNormalized<Args>;
 }>;
 
 /**
  * @private
  */
-declare type HttpConfigNormalized<Args> = {
+export type HttpConfigNormalized<Args> = {
 	url: Expression<[Args], string | URL>;
 	method?: HttpMethod;
 	headers: Expression<[Args], Record<string, unknown> | Headers | undefined>;
@@ -46,7 +43,7 @@ declare type HttpConfigNormalized<Args> = {
 /**
  * @public
  */
-declare type HttpContext = {
+export type HttpContext = {
 	url: URL;
 	method: HttpMethod;
 	headers: Headers;
@@ -57,16 +54,16 @@ declare type HttpContext = {
 /**
  * @public
  */
-declare type HttpConfigSource<Args = unknown> = Iterable<HttpConfigOrSource<Args>>;
+export type HttpConfigSource<Args = unknown> = Iterable<HttpConfigOrSource<Args>>;
 
 /**
  * @public
  */
-declare type HttpConfigSourceNormalized<Args = unknown> = Array<
+export type HttpConfigSourceNormalized<Args = unknown> = Array<
 	HttpConfigNormalized<Args> | HttpConfigSourceNormalized<Args>
 >;
 
 /**
  * @public
  */
-declare type HttpConfigOrSource<Args> = HttpConfig<Args> | HttpConfigSource<Args>;
+export type HttpConfigOrSource<Args> = HttpConfig<Args> | HttpConfigSource<Args>;

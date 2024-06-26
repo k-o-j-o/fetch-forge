@@ -6,59 +6,21 @@ import {
 	joinPaths,
 	returnThis,
 } from "@/util";
-import {
-	HttpConfig,
-	HttpConfigNormalized,
-	HttpConfigOrSource,
-	HttpConfigSource,
-	HttpContext,
-} from "@/http/http";
-import * as Symbols from "@/symbols";
+import { HttpConfig, HttpConfigNormalized, HttpConfigSource, HttpContext } from "@/types";
 
-export class RequestBuilder<Args = void> implements Iterable<HttpConfigOrSource<Args>> {
-	#configs: Set<HttpConfigOrSource<Args>>;
-
-	[Symbol.iterator]!: () => Iterator<HttpConfigOrSource<Args>>;
-
-	private constructor(source: HttpConfigSource<Args>) {
-		this.#configs = new Set(source);
-		this[Symbol.iterator] = this.#configs[Symbol.iterator].bind(this.#configs);
+export function applyConfigs(
+	configs: HttpConfigSource<any>,
+	args: any,
+	target: HttpContext = createContextWithDefaults()
+): HttpContext {
+	for (const configOrSource of configs) {
+		if (isIterable(configOrSource)) {
+			applyConfigs(configOrSource, args, target);
+		} else {
+			applyConfig(configOrSource, args, target);
+		}
 	}
-
-	public addConfig(...configs: HttpConfig<Args>[]): RequestBuilder<Args> {
-		configs.forEach((config) => this.#configs.add(config));
-		return this;
-	}
-
-	public request(args: Args): Promise<Response> {
-		const context = createContextWithDefaults();
-
-		applyConfigSource(this.#configs, args, context);
-
-		return request(context);
-	}
-
-	public static using<Args = void>(...source: HttpConfigOrSource<Args>[]): RequestBuilder<Args> {
-		return new RequestBuilder(source);
-	}
-}
-
-export function request(context: HttpContext): Promise<Response> {
-	appendEntries(context.url.searchParams, context.params);
-
-	const body = getRequestBodyIfValid(context);
-
-	if (typeof body === "string" && !context.headers.has("Content-Type")) {
-		context.headers.set("Content-Type", "application/json");
-	}
-
-	const request = new Request(context.url, {
-		method: context.method,
-		headers: context.headers,
-		body,
-	});
-
-	return fetch(request);
+	return target;
 }
 
 function createContextWithDefaults(): HttpContext {
@@ -71,21 +33,6 @@ function createContextWithDefaults(): HttpContext {
 	};
 }
 
-function applyConfigSource(
-	configs: HttpConfigSource<any>,
-	args: any,
-	target: HttpContext
-): HttpContext {
-	for (const configOrSource of configs) {
-		if (isIterable(configOrSource)) {
-			applyConfigSource(configOrSource, args, target);
-		} else {
-			applyConfig(configOrSource, args, target);
-		}
-	}
-	return target;
-}
-
 function applyConfig(it: HttpConfig<any>, args: any, context: HttpContext) {
 	const config = normalizeConfig(it);
 
@@ -96,10 +43,15 @@ function applyConfig(it: HttpConfig<any>, args: any, context: HttpContext) {
 	applyBodyConfig(config, args, context);
 }
 
+const NormalizedConfig = Symbol();
+
 function normalizeConfig<Args>(config: HttpConfig<Args>): HttpConfigNormalized<Args> {
 	return (
-		config[Symbols.NormalizedConfig] ||
-		(config[Symbols.NormalizedConfig] = {
+		//@ts-expect-error: We're using a symbol to store the normalized config,
+		//                  but the typing doesn't know that
+		config[NormalizedConfig] ||
+		//@ts-expect-error
+		(config[NormalizedConfig] = {
 			method: config.method,
 			url: isFunction(config.url) ? config.url : returnThis.bind(config.url),
 			headers: isFunction(config.headers) ? config.headers : returnThis.bind(config.headers),
@@ -180,13 +132,4 @@ function applyBodyConfig(config: HttpConfigNormalized<any>, args: any, target: H
 			target.body = { ...body };
 		}
 	}
-}
-
-function getRequestBodyIfValid(context: HttpContext): FormData | string | undefined {
-	const method = context.method.toUpperCase();
-	if (method === "GET" || method === "HEAD") return undefined;
-
-	if (context.body instanceof FormData) return context.body;
-
-	return JSON.stringify(context.body);
 }

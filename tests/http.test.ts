@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { MockServerResponse, httpServer } from "./mocks/http-server";
-import { RequestBuilder } from "@/http";
+import { RequestBuilder } from "@/request-builder";
 
 beforeAll(() => httpServer.listen());
 
