@@ -2,7 +2,7 @@ import { applyConfigs } from "@/configuration";
 import { request } from "@/request";
 import { HttpConfig, HttpConfigOrSource, HttpConfigSource } from "@/types";
 
-export class RequestBuilder<Args = void> implements Iterable<HttpConfigOrSource<Args>> {
+export class RequestConfig<Args = void> implements Iterable<HttpConfigOrSource<Args>> {
 	#configs: Set<HttpConfigOrSource<Args>>;
 
 	[Symbol.iterator]!: () => Iterator<HttpConfigOrSource<Args>>;
@@ -12,7 +12,7 @@ export class RequestBuilder<Args = void> implements Iterable<HttpConfigOrSource<
 		this[Symbol.iterator] = this.#configs[Symbol.iterator].bind(this.#configs);
 	}
 
-	public addConfig(...configs: HttpConfig<Args>[]): RequestBuilder<Args> {
+	public addConfig(...configs: HttpConfig<Args>[]): RequestConfig<Args> {
 		configs.forEach((config) => this.#configs.add(config));
 		return this;
 	}
@@ -22,7 +22,7 @@ export class RequestBuilder<Args = void> implements Iterable<HttpConfigOrSource<
 		return request(context);
 	}
 
-	public static using<Args = void>(...source: HttpConfigOrSource<Args>[]): RequestBuilder<Args> {
-		return new RequestBuilder(source);
+	public static using<Args = void>(...source: HttpConfigOrSource<Args>[]): RequestConfig<Args> {
+		return new RequestConfig(source);
 	}
 }

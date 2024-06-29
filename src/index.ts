@@ -1,2 +1,2 @@
 export { request } from "@/request";
-export { RequestBuilder } from "@/request-builder";
+export { RequestConfig as RequestBuilder } from "@/request-config";

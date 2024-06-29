@@ -1,5 +1,5 @@
 import { appendEntries } from "@/util";
-import { HttpContext } from "./types";
+import { HttpContext } from "@/types";
 
 export function request(context: HttpContext): Promise<Response> {
 	appendEntries(context.url.searchParams, context.params);
