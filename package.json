@@ -3,7 +3,10 @@
   "private": false,
   "version": "0.1.0",
   "type": "module",
-  "repository": "github:k-o-j-o/fetch-forge",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/k-o-j-o/fetch-forge.git"
+  },
   "exports": {
     "import": "./dist/fetch-forge.js",
     "require": "./dist/fetch-forge.umd.cjs"
