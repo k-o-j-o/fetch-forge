@@ -6,6 +6,8 @@ export default defineConfig({
 	plugins: [tsconfigpaths()],
 	build: {
 		target: "es2022",
+		minify: "esbuild",
+		emptyOutDir: false,
 		lib: {
 			entry: "src/index.ts",
 			formats: ["es", "umd"],
