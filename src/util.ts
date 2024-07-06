@@ -1,3 +1,5 @@
+import { Appendable, KeyValuePair } from "@/types";
+
 export function isFunction(thing: any): thing is Function {
 	return typeof thing === "function";
 }

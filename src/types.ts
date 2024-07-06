@@ -67,3 +67,17 @@ export type HttpConfigSourceNormalized<Args = unknown> = Array<
  * @public
  */
 export type HttpConfigOrSource<Args> = HttpConfig<Args> | HttpConfigSource<Args>;
+
+// #region Utility Types
+export type AnyCase<T extends string> = Lowercase<T> | Uppercase<T>;
+
+export type Expression<Args extends Array<unknown>, Return> = (...args: Args) => Return;
+
+export type Constructor<T> = new (...args: unknown[]) => T;
+
+export type Appendable<Key extends PropertyKey = PropertyKey, Value = unknown> = {
+	append(key: Key, value: Value): void;
+};
+
+export type KeyValuePair<Key extends PropertyKey = PropertyKey, Value = unknown> = [Key, Value];
+// #endregion
