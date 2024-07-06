@@ -1,18 +1,24 @@
 {
-  "name": "resource-framework",
+  "name": "fetch-forge",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "exports": {
+    "import": "./dist/fetch-forge.js",
+    "require": "./dist/fetch-forge.umd.cjs"
+  },
+  "typings": "./dist/fetch-forge.d.ts",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest"
   },
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.47.0",
     "jsdom": "^24.1.0",
     "msw": "^2.3.1",
-    "typescript": "^5.0.2",
+    "typescript": "^5.5.2",
     "vite": "^4.4.5",
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^0.34.6"

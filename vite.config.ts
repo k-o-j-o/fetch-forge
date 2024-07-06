@@ -4,6 +4,14 @@ import tsconfigpaths from "vite-tsconfig-paths";
 
 export default defineConfig({
 	plugins: [tsconfigpaths()],
+	build: {
+		target: "es2022",
+		lib: {
+			entry: "src/index.ts",
+			formats: ["es", "umd"],
+			name: "FetchForge",
+		},
+	},
 	test: {
 		environment: "jsdom",
 	},
