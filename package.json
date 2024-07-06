@@ -1,8 +1,9 @@
 {
   "name": "fetch-forge",
-  "private": true,
-  "version": "0.0.0",
+  "private": false,
+  "version": "0.1.0",
   "type": "module",
+  "repository": "github:k-o-j-o/fetch-forge",
   "exports": {
     "import": "./dist/fetch-forge.js",
     "require": "./dist/fetch-forge.umd.cjs"
@@ -10,12 +11,13 @@
   "typings": "./dist/fetch-forge.d.ts",
   "scripts": {
     "dev": "vite",
-    "build": "run-s build:remove:dist build:types:* build:vite build:remove:temp",
+    "build": "run-s build:remove:dist build:types:* build:vite:* build:remove:temp",
     "build:remove:dist": "rimraf dist",
     "build:types:tsc": "tsc --emitDeclarationOnly",
     "build:types:alias": "tsc-alias",
     "build:types:extract": "api-extractor run --local --verbose",
-    "build:vite": "vite build",
+    "build:vite:no-min": "cross-env MINIFY=false vite build",
+    "build:vite:min": "cross-env MINIFY=true vite build",
     "build:remove:temp": "rimraf temp",
     "preview": "vite preview",
     "test": "vitest"
@@ -23,6 +25,7 @@
   "devDependencies": {
     "@microsoft/api-extractor": "^7.47.0",
     "copyfiles": "^2.4.1",
+    "cross-env": "^7.0.3",
     "jsdom": "^24.1.0",
     "msw": "^2.3.1",
     "npm-run-all": "^4.1.5",

@@ -14,6 +14,9 @@ importers:
       copyfiles:
         specifier: ^2.4.1
         version: 2.4.1
+      cross-env:
+        specifier: ^7.0.3
+        version: 7.0.3
       jsdom:
         specifier: ^24.1.0
         version: 24.1.0
@@ -26,9 +29,6 @@ importers:
       rimraf:
         specifier: ^5.0.8
         version: 5.0.8
-      terser:
-        specifier: ^5.31.1
-        version: 5.31.1
       tsc-alias:
         specifier: ^1.8.10
         version: 1.8.10
@@ -534,6 +534,11 @@ packages:
 
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
+
+  cross-env@7.0.3:
+    resolution: {integrity: sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==}
+    engines: {node: '>=10.14', npm: '>=6', yarn: '>=1'}
+    hasBin: true
 
   cross-spawn@6.0.5:
     resolution: {integrity: sha512-eTVLrBSt7fjbDygz805pMnstIs2VTBNkRm0qxZd+M7A5XDdxVRWO5MxGBXZhjY4cqLYLdtrGqRf8mBPmzwSpWQ==}
@@ -1831,15 +1836,19 @@ snapshots:
       '@jridgewell/set-array': 1.2.1
       '@jridgewell/sourcemap-codec': 1.4.15
       '@jridgewell/trace-mapping': 0.3.25
+    optional: true
 
-  '@jridgewell/resolve-uri@3.1.2': {}
+  '@jridgewell/resolve-uri@3.1.2':
+    optional: true
 
-  '@jridgewell/set-array@1.2.1': {}
+  '@jridgewell/set-array@1.2.1':
+    optional: true
 
   '@jridgewell/source-map@0.3.6':
     dependencies:
       '@jridgewell/gen-mapping': 0.3.5
       '@jridgewell/trace-mapping': 0.3.25
+    optional: true
 
   '@jridgewell/sourcemap-codec@1.4.15': {}
 
@@ -1847,6 +1856,7 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.4.15
+    optional: true
 
   '@microsoft/api-extractor-model@7.29.2(@types/node@20.14.5)':
     dependencies:
@@ -2110,7 +2120,8 @@ snapshots:
     dependencies:
       fill-range: 7.1.1
 
-  buffer-from@1.1.2: {}
+  buffer-from@1.1.2:
+    optional: true
 
   cac@6.7.14: {}
 
@@ -2191,7 +2202,8 @@ snapshots:
     dependencies:
       delayed-stream: 1.0.0
 
-  commander@2.20.3: {}
+  commander@2.20.3:
+    optional: true
 
   commander@9.5.0: {}
 
@@ -2212,6 +2224,10 @@ snapshots:
       yargs: 16.2.0
 
   core-util-is@1.0.3: {}
+
+  cross-env@7.0.3:
+    dependencies:
+      cross-spawn: 7.0.3
 
   cross-spawn@6.0.5:
     dependencies:
@@ -3077,6 +3093,7 @@ snapshots:
     dependencies:
       buffer-from: 1.1.2
       source-map: 0.6.1
+    optional: true
 
   source-map@0.6.1: {}
 
@@ -3188,6 +3205,7 @@ snapshots:
       acorn: 8.12.0
       commander: 2.20.3
       source-map-support: 0.5.21
+    optional: true
 
   through2@2.0.5:
     dependencies:

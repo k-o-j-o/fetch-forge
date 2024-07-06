@@ -2,19 +2,24 @@
 import { defineConfig } from "vite";
 import tsconfigpaths from "vite-tsconfig-paths";
 
-export default defineConfig({
-	plugins: [tsconfigpaths()],
-	build: {
-		target: "es2022",
-		minify: "esbuild",
-		emptyOutDir: false,
-		lib: {
-			entry: "src/index.ts",
-			formats: ["es", "umd"],
-			name: "FetchForge",
+export default defineConfig((options) => {
+	const shouldMinify = process.env.MINIFY === "true";
+	return {
+		plugins: [tsconfigpaths()],
+		build: {
+			target: "es2022",
+			emptyOutDir: false,
+			minify: shouldMinify ? "esbuild" : false,
+			lib: {
+				entry: "src/index.ts",
+				formats: ["es", "umd"],
+				name: "FetchForge",
+				fileName: (format) =>
+					`fetch-forge${format === "umd" ? ".umd" : ""}${shouldMinify ? ".min" : ""}.js`,
+			},
 		},
-	},
-	test: {
-		environment: "jsdom",
-	},
+		test: {
+			environment: "jsdom",
+		},
+	};
 });
